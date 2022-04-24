@@ -6,7 +6,10 @@ inputs:
     description: "A GitHub Personal Access Token"
     required: true
   projectNumber:
-    description: "The number of the project. Get this from the URL."
+    description: "The number of the project with issues. Get this from the URL."
+    required: true
+  overviewProjectNumber:
+    description: "The number of the overview project to sync."
     required: true
 
 runs:
