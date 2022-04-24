@@ -6,6 +6,7 @@ interface Input {
     ghToken: string;
     owner: string;
     projectNumber: number;
+    overviewProjectNumber: number;
 }
 
 export function getInputs(): Input {
@@ -13,7 +14,7 @@ export function getInputs(): Input {
     if (!github.context.payload) throw new Error('No event. Make sure this is an issue or pr event.');
 
     const input = {} as Record<string, string>;
-    const requiredInputs: (keyof Input)[] = ['ghToken', 'projectNumber'];
+    const requiredInputs: (keyof Input)[] = ['ghToken', 'projectNumber', 'overviewProjectNumber'];
     requiredInputs.forEach(prop => {
         input[prop] = core.getInput(prop);
         if (input[prop] === undefined) {
@@ -25,6 +26,7 @@ export function getInputs(): Input {
         ...input,
         owner: github.context.repo.owner,
         projectNumber: Number(input.projectNumber),
+        overviewProjectNumber: Number(input.overviewProjectNumber),
     } as Input;
 }
 
@@ -33,7 +35,9 @@ async function run(): Promise<void> {
         const { ghToken, projectNumber, owner } = getInputs();
         const octokit = github.getOctokit(ghToken);
         const project = await getProjectWithCards(octokit, { projectNumber, owner });
+        const overviewProject = await getProjectWithCards(octokit, { projectNumber, owner });
         core.debug(JSON.stringify(project, null, 2));
+        core.debug(JSON.stringify(overviewProject, null, 2));
     } catch (error) {
         if (error instanceof Error) core.setFailed(error.message);
     }

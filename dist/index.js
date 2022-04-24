@@ -49,14 +49,14 @@ function getInputs() {
     if (!github.context.payload)
         throw new Error('No event. Make sure this is an issue or pr event.');
     const input = {};
-    const requiredInputs = ['ghToken', 'projectNumber'];
+    const requiredInputs = ['ghToken', 'projectNumber', 'overviewProjectNumber'];
     requiredInputs.forEach(prop => {
         input[prop] = core.getInput(prop);
         if (input[prop] === undefined) {
             throw new Error(`Missing required input: ${prop}`);
         }
     });
-    return Object.assign(Object.assign({}, input), { owner: github.context.repo.owner, projectNumber: Number(input.projectNumber) });
+    return Object.assign(Object.assign({}, input), { owner: github.context.repo.owner, projectNumber: Number(input.projectNumber), overviewProjectNumber: Number(input.overviewProjectNumber) });
 }
 exports.getInputs = getInputs;
 function run() {
@@ -65,7 +65,9 @@ function run() {
             const { ghToken, projectNumber, owner } = getInputs();
             const octokit = github.getOctokit(ghToken);
             const project = yield (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber, owner });
+            const overviewProject = yield (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber, owner });
             core.debug(JSON.stringify(project, null, 2));
+            core.debug(JSON.stringify(overviewProject, null, 2));
         }
         catch (error) {
             if (error instanceof Error)
