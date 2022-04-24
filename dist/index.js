@@ -119,6 +119,7 @@ function getProjectWithItems(octokit, req) {
                 obj[name] = Array.isArray(settings.options)
                     ? settings.options.find((o) => o.id === fieldValue.value).name
                     : fieldValue.value;
+                return obj;
             }, {});
             return {
                 id: item.id,

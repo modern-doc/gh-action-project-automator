@@ -52,6 +52,7 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
             obj[name] = Array.isArray(settings.options)
                 ? settings.options.find((o: any) => o.id === fieldValue.value).name
                 : fieldValue.value;
+            return obj;
         }, {} as Record<string, string>);
         return {
             id: item.id,
