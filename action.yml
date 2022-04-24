@@ -2,10 +2,13 @@ name: 'Project Automator'
 description: 'Automates project boards.'
 author: 'moderndocmedia'
 inputs:
-  milliseconds: # change this
+  ghToken:
+    description: "A GitHub Personal Access Token"
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  projectNumber:
+    description: "The number of the project. Get this from the URL."
+    required: true
+
 runs:
   using: 'node16'
   main: 'dist/index.js'

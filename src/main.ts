@@ -1,19 +1,42 @@
-import * as core from '@actions/core'
-import {wait} from './wait'
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import { getProjectWithCards } from './projects-sdk/get-project-with-cards';
 
-async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
-  }
+interface Input {
+    ghToken: string;
+    owner: string;
+    projectNumber: number;
 }
 
-run()
+export function getInputs(): Input {
+    if (!github.context) throw new Error('No GitHub context.');
+    if (!github.context.payload) throw new Error('No event. Make sure this is an issue or pr event.');
+
+    const input = {} as Record<string, string>;
+    const requiredInputs: (keyof Input)[] = ['ghToken', 'projectNumber'];
+    requiredInputs.forEach(prop => {
+        input[prop] = core.getInput(prop);
+        if (input[prop] === undefined) {
+            throw new Error(`Missing required input: ${prop}`);
+        }
+    });
+
+    return {
+        ...input,
+        owner: github.context.repo.owner,
+        projectNumber: Number(input.projectNumber),
+    } as Input;
+}
+
+async function run(): Promise<void> {
+    try {
+        const { ghToken, projectNumber, owner } = getInputs();
+        const octokit = github.getOctokit(ghToken);
+        const project = getProjectWithCards(octokit, { projectNumber, owner });
+        core.debug(JSON.stringify(project, null, 2));
+    } catch (error) {
+        if (error instanceof Error) core.setFailed(error.message);
+    }
+}
+
+run();
