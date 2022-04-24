@@ -1,6 +1,6 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Project Automator'
+description: 'Automates project boards.'
+author: 'moderndocmedia'
 inputs:
   milliseconds: # change this
     required: true
