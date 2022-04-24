@@ -42,7 +42,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const get_project_with_cards_1 = __nccwpck_require__(8895);
+const get_project_with_items_1 = __nccwpck_require__(1881);
 function getInputs() {
     if (!github.context)
         throw new Error('No GitHub context.');
@@ -64,8 +64,8 @@ function run() {
         try {
             const { ghToken, projectNumber, overviewProjectNumber, owner } = getInputs();
             const octokit = github.getOctokit(ghToken);
-            const project = yield (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber, owner });
-            const overviewProject = yield (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber: overviewProjectNumber, owner });
+            const project = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber, owner });
+            const overviewProject = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber: overviewProjectNumber, owner });
             core.debug(JSON.stringify(project, null, 2));
             core.debug(JSON.stringify(overviewProject, null, 2));
         }
@@ -80,7 +80,7 @@ run();
 
 /***/ }),
 
-/***/ 8895:
+/***/ 1881:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -95,20 +95,48 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getProjectWithCards = void 0;
+exports.getProjectWithItems = void 0;
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const queries_1 = __nccwpck_require__(541);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getProjectWithCards(octokit, req) {
+function getProjectWithItems(octokit, req) {
     return __awaiter(this, void 0, void 0, function* () {
         const { projectNumber, owner } = req;
-        const response = yield octokit.graphql(queries_1.getProjectWithItemsQuery, {
+        const { organization: { projectNext }, } = yield octokit.graphql(queries_1.getProjectWithItemsQuery, {
             org: owner,
             number: projectNumber,
         });
-        return response;
+        const fields = projectNext.fields.nodes.reduce((obj, field) => {
+            obj[field.id] = {
+                id: field.id,
+                name: field.name,
+                settings: JSON.parse(field.settings || '{}'),
+            };
+            return obj;
+        }, {});
+        const items = projectNext.items.nodes.map((item) => {
+            const fieldValues = item.fieldValues.nodes.reduce((obj, fieldValue) => {
+                const { name, settings } = fields[fieldValue.projectField.id];
+                obj[name] = Array.isArray(settings.options)
+                    ? settings.options.find((o) => o.id === fieldValue.value).name
+                    : fieldValue.value;
+            }, {});
+            return {
+                id: item.id,
+                type: item.type,
+                fieldValues,
+            };
+        });
+        return {
+            id: projectNext.id,
+            title: projectNext.title,
+            description: projectNext.description || '',
+            url: projectNext.url,
+            fields,
+            items,
+        };
     });
 }
-exports.getProjectWithCards = getProjectWithCards;
+exports.getProjectWithItems = getProjectWithItems;
 
 
 /***/ }),
