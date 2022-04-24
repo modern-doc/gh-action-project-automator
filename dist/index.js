@@ -64,7 +64,7 @@ function run() {
         try {
             const { ghToken, projectNumber, owner } = getInputs();
             const octokit = github.getOctokit(ghToken);
-            const project = (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber, owner });
+            const project = yield (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber, owner });
             core.debug(JSON.stringify(project, null, 2));
         }
         catch (error) {

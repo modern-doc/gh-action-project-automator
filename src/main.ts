@@ -32,7 +32,7 @@ async function run(): Promise<void> {
     try {
         const { ghToken, projectNumber, owner } = getInputs();
         const octokit = github.getOctokit(ghToken);
-        const project = getProjectWithCards(octokit, { projectNumber, owner });
+        const project = await getProjectWithCards(octokit, { projectNumber, owner });
         core.debug(JSON.stringify(project, null, 2));
     } catch (error) {
         if (error instanceof Error) core.setFailed(error.message);
