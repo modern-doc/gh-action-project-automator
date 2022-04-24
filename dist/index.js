@@ -62,10 +62,10 @@ exports.getInputs = getInputs;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { ghToken, projectNumber, owner } = getInputs();
+            const { ghToken, projectNumber, overviewProjectNumber, owner } = getInputs();
             const octokit = github.getOctokit(ghToken);
             const project = yield (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber, owner });
-            const overviewProject = yield (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber, owner });
+            const overviewProject = yield (0, get_project_with_cards_1.getProjectWithCards)(octokit, { projectNumber: overviewProjectNumber, owner });
             core.debug(JSON.stringify(project, null, 2));
             core.debug(JSON.stringify(overviewProject, null, 2));
         }

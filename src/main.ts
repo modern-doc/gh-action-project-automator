@@ -32,10 +32,10 @@ export function getInputs(): Input {
 
 async function run(): Promise<void> {
     try {
-        const { ghToken, projectNumber, owner } = getInputs();
+        const { ghToken, projectNumber, overviewProjectNumber, owner } = getInputs();
         const octokit = github.getOctokit(ghToken);
         const project = await getProjectWithCards(octokit, { projectNumber, owner });
-        const overviewProject = await getProjectWithCards(octokit, { projectNumber, owner });
+        const overviewProject = await getProjectWithCards(octokit, { projectNumber: overviewProjectNumber, owner });
         core.debug(JSON.stringify(project, null, 2));
         core.debug(JSON.stringify(overviewProject, null, 2));
     } catch (error) {
