@@ -12,7 +12,9 @@ export interface AddProjectDraftIssueInput {
 }
 
 export async function addProjectDraftIssue(octokit: Octokit, project: Project, input: AddProjectDraftIssueInput): Promise<DraftIssue> {
-    const { addProjectDraftIssue: issue } = await octokit.graphql(addProjectDraftIssueMutation, { projectId: project.id, ...input });
+    const {
+        addProjectDraftIssue: { projectNextItem: issue },
+    } = await octokit.graphql(addProjectDraftIssueMutation, { projectId: project.id, ...input });
     if (input.fieldValues) {
         const response = await octokit.graphql(getFieldsUpdateQuery(project.fields, input.fieldValues), {
             projectId: project.id,

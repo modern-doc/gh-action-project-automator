@@ -39,15 +39,15 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
 
     const issues = projectNext.items.nodes
         .filter((item: any) => item.type === 'ISSUE')
-        .map((item: any) => {
-            const fieldValues = getIssueFieldValues(item, fields);
+        .map((issue: any) => {
+            const fieldValues = getIssueFieldValues(issue, fields);
             delete fieldValues.Title;
-            const { number, title, url, closed } = item.content;
-            const labels = item.content.labels.nodes.map((n: any) => n.name);
-            const assignees = item.content.assignees.nodes.map((n: any) => n.login);
+            const { number, title, url, closed } = issue.content;
+            const labels = issue.content.labels.nodes.map((n: any) => n.name);
+            const assignees = issue.content.assignees.nodes.map((n: any) => n.login);
             return {
-                id: item.id,
-                type: item.type,
+                id: issue.id,
+                type: issue.type,
                 number,
                 title,
                 url,

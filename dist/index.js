@@ -145,7 +145,7 @@ const util_1 = __nccwpck_require__(6285);
 const core = __importStar(__nccwpck_require__(2186));
 function addProjectDraftIssue(octokit, project, input) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { addProjectDraftIssue: issue } = yield octokit.graphql(queries_1.addProjectDraftIssueMutation, Object.assign({ projectId: project.id }, input));
+        const { addProjectDraftIssue: { projectNextItem: issue }, } = yield octokit.graphql(queries_1.addProjectDraftIssueMutation, Object.assign({ projectId: project.id }, input));
         if (input.fieldValues) {
             const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fields, input.fieldValues), {
                 projectId: project.id,
@@ -223,15 +223,15 @@ function getProjectWithItems(octokit, req) {
         });
         const issues = projectNext.items.nodes
             .filter((item) => item.type === 'ISSUE')
-            .map((item) => {
-            const fieldValues = (0, util_1.getIssueFieldValues)(item, fields);
+            .map((issue) => {
+            const fieldValues = (0, util_1.getIssueFieldValues)(issue, fields);
             delete fieldValues.Title;
-            const { number, title, url, closed } = item.content;
-            const labels = item.content.labels.nodes.map((n) => n.name);
-            const assignees = item.content.assignees.nodes.map((n) => n.login);
+            const { number, title, url, closed } = issue.content;
+            const labels = issue.content.labels.nodes.map((n) => n.name);
+            const assignees = issue.content.assignees.nodes.map((n) => n.login);
             return {
-                id: item.id,
-                type: item.type,
+                id: issue.id,
+                type: issue.type,
                 number,
                 title,
                 url,
