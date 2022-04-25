@@ -76,7 +76,6 @@ function run() {
                 body: 'Here is the OG body.',
                 fieldValuesByName: {
                     Test: '',
-                    Team: undefined,
                 },
             });
             core.debug(JSON.stringify(updatedIssue, null, 2));
