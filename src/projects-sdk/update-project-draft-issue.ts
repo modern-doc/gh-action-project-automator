@@ -2,6 +2,7 @@
 import { updateProjectDraftIssueMutation, getFieldsUpdateQuery } from './queries';
 import { parseDraftIssueResp } from './util';
 import type { DraftIssue, Octokit, Project } from './types';
+import * as core from '@actions/core';
 
 export interface UpdateProjectDraftIssueData {
     id: string;
@@ -21,6 +22,7 @@ export async function updateProjectDraftIssue(octokit: Octokit, project: Project
     const draftIssue = parseDraftIssueResp(draftIssueResp, project.fieldsById);
 
     if (fieldValuesByName) {
+        core.debug(JSON.stringify(draftIssueResp, null, 2));
         const response: any = await octokit.graphql(getFieldsUpdateQuery(project.fieldsByName, fieldValuesByName), {
             projectId: project.id,
             itemId: draftIssueResp.id,
