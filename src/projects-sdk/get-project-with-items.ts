@@ -8,9 +8,21 @@ export interface ProjectField {
     settings: Record<string, unknown>;
 }
 
-export interface ProjectItem {
+export interface DraftIssue {
     id: string;
-    type: 'ISSUE' | 'DRAFT_ISSUE';
+    title: string;
+    fieldValues: Record<string, string>;
+}
+
+export interface Issue {
+    id: string;
+    title: string;
+    number: number;
+    url: string;
+    closed: boolean;
+    repository: string;
+    labels: string[];
+    assignees: string[];
     fieldValues: Record<string, string>;
 }
 
@@ -25,8 +37,17 @@ export interface GetProjectWithItemsResponse {
     description: string;
     url: string;
     fields: Record<string, ProjectField>;
-    items: ProjectItem[];
+    draftIssues: DraftIssue[];
+    issues: Issue[];
 }
+
+export const getIssueFieldValues = (issue: any, fields: any) => {
+    return issue.fieldValues.nodes.reduce((obj: Record<string, string>, fieldValue: any) => {
+        const { name, settings } = fields[fieldValue.projectField.id];
+        obj[name] = Array.isArray(settings.options) ? settings.options.find((o: any) => o.id === fieldValue.value).name : fieldValue.value;
+        return obj;
+    }, {} as Record<string, string>);
+};
 
 export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithItemsRequest): Promise<GetProjectWithItemsResponse> {
     const { projectNumber, owner } = req;
@@ -46,20 +67,37 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
         return obj;
     }, {} as Record<string, ProjectField>);
 
-    const items = projectNext.items.nodes.map((item: any) => {
-        const fieldValues = item.fieldValues.nodes.reduce((obj: Record<string, string>, fieldValue: any) => {
-            const { name, settings } = fields[fieldValue.projectField.id];
-            obj[name] = Array.isArray(settings.options)
-                ? settings.options.find((o: any) => o.id === fieldValue.value).name
-                : fieldValue.value;
-            return obj;
-        }, {} as Record<string, string>);
-        return {
-            id: item.id,
-            type: item.type,
-            fieldValues,
-        };
-    });
+    const draftIssues = projectNext.items.nodes
+        .filter((item: any) => item.type === 'DRAFT_ISSUE')
+        .map((issue: any) => {
+            const { Title, ...fieldValues } = getIssueFieldValues(issue, fields);
+            return {
+                id: issue.id,
+                title: Title,
+                fieldValues,
+            };
+        });
+
+    const issues = projectNext.items.nodes
+        .filter((item: any) => item.type === 'ISSUE')
+        .map((item: any) => {
+            const fieldValues = getIssueFieldValues(item, fields);
+            delete fieldValues.Title;
+            const { number, title, url, closed } = item.content;
+            const labels = item.content.labels.nodes;
+            const assignees = item.content.assignees.nodes;
+            return {
+                id: item.id,
+                type: item.type,
+                number,
+                title,
+                url,
+                closed,
+                labels,
+                assignees,
+                fieldValues,
+            };
+        });
 
     return {
         id: projectNext.id,
@@ -67,6 +105,7 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
         description: projectNext.description || '',
         url: projectNext.url,
         fields,
-        items,
+        draftIssues,
+        issues,
     };
 }
