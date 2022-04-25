@@ -6,6 +6,7 @@ export interface Project {
     title: string;
     url: string;
     fieldsById: Record<string, ProjectField>;
+    fieldsByName: Record<string, ProjectField>;
 }
 
 export interface ProjectWithItems extends Project {

@@ -190,14 +190,16 @@ function getProjectWithItems(octokit, req) {
             org: owner,
             number: projectNumber,
         });
-        const fieldsById = projectNext.fields.nodes.reduce((obj, field) => {
-            obj[field.id] = {
+        const fieldsById = {};
+        const fieldsByName = {};
+        projectNext.fields.nodes.forEach((field) => {
+            fieldsById[field.id] = {
                 id: field.id,
                 name: field.name,
                 settings: JSON.parse(field.settings || '{}'),
             };
-            return obj;
-        }, {});
+            fieldsById[field.name] = fieldsById[field.id];
+        });
         const draftIssues = projectNext.items.nodes
             .filter((item) => item.type === 'DRAFT_ISSUE')
             .map((issue) => (0, util_1.parseDraftIssueResp)(issue, fieldsById));
@@ -209,6 +211,7 @@ function getProjectWithItems(octokit, req) {
             title: projectNext.title,
             url: projectNext.url,
             fieldsById,
+            fieldsByName,
             draftIssues,
             issues,
         };
@@ -374,17 +377,17 @@ exports.addProjectDraftIssueMutation = `
     }
   }
 `;
-function getFieldsUpdateQuery(fieldsById, fieldValuesByName) {
+function getFieldsUpdateQuery(fieldsByName, fieldValuesByName) {
     const updates = Object.entries(fieldValuesByName)
-        .filter(([, value]) => value !== undefined)
-        .map(([key, value], index) => {
-        const field = fieldsById[key];
+        .filter(([, fieldValue]) => fieldValue !== undefined)
+        .map(([fieldName, fieldValue], index) => {
+        const field = fieldsByName[fieldName];
         const valueOrOptionId = Array.isArray(field.settings.options)
-            ? field.settings.options.find((o) => o.name === value).id
-            : value;
-        const queryNodes = index === 0 ? `projectNextItem { ${exports.queryItemFieldNodes} }` : 'clientMutationId';
+            ? field.settings.options.find((o) => o.name === fieldValue).id
+            : fieldValue;
+        const queryNodes = !index ? `projectNextItem { ${exports.queryItemFieldNodes} }` : 'clientMutationId';
         return `
-${key}: updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: "${field.id}", value: "${(0, util_1.escapeQuotes)(valueOrOptionId)}"}) {
+${fieldName}: updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: "${field.id}", value: "${(0, util_1.escapeQuotes)(valueOrOptionId)}"}) {
   ${queryNodes}
 }
 `;

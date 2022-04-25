@@ -17,14 +17,17 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
         number: projectNumber,
     });
 
-    const fieldsById = projectNext.fields.nodes.reduce((obj: Record<string, ProjectField>, field: any) => {
-        obj[field.id] = {
+    const fieldsById: Record<string, ProjectField> = {};
+    const fieldsByName: Record<string, ProjectField> = {};
+
+    projectNext.fields.nodes.forEach((field: any) => {
+        fieldsById[field.id] = {
             id: field.id,
             name: field.name,
             settings: JSON.parse(field.settings || '{}'),
         };
-        return obj;
-    }, {} as Record<string, ProjectField>);
+        fieldsById[field.name] = fieldsById[field.id];
+    });
 
     const draftIssues = projectNext.items.nodes
         .filter((item: any) => item.type === 'DRAFT_ISSUE')
@@ -39,6 +42,7 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
         title: projectNext.title,
         url: projectNext.url,
         fieldsById,
+        fieldsByName,
         draftIssues,
         issues,
     };

@@ -158,19 +158,19 @@ export const addProjectDraftIssueMutation = `
   }
 `;
 
-export function getFieldsUpdateQuery(fieldsById: Record<string, ProjectField>, fieldValuesByName: Record<string, string>) {
+export function getFieldsUpdateQuery(fieldsByName: Record<string, ProjectField>, fieldValuesByName: Record<string, string>) {
     const updates = Object.entries(fieldValuesByName)
-        .filter(([, value]) => value !== undefined)
-        .map(([key, value], index) => {
-            const field = fieldsById[key];
+        .filter(([, fieldValue]) => fieldValue !== undefined)
+        .map(([fieldName, fieldValue], index) => {
+            const field = fieldsByName[fieldName];
             const valueOrOptionId = Array.isArray(field.settings.options)
-                ? field.settings.options.find((o: any) => o.name === value).id
-                : value;
+                ? field.settings.options.find((o: any) => o.name === fieldValue).id
+                : fieldValue;
 
-            const queryNodes = index === 0 ? `projectNextItem { ${queryItemFieldNodes} }` : 'clientMutationId';
+            const queryNodes = !index ? `projectNextItem { ${queryItemFieldNodes} }` : 'clientMutationId';
 
             return `
-${key}: updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: "${field.id}", value: "${escapeQuotes(
+${fieldName}: updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: "${field.id}", value: "${escapeQuotes(
                 valueOrOptionId
             )}"}) {
   ${queryNodes}
