@@ -143,11 +143,13 @@ exports.addProjectDraftIssue = void 0;
 const queries_1 = __nccwpck_require__(541);
 const util_1 = __nccwpck_require__(6285);
 const core = __importStar(__nccwpck_require__(2186));
-function addProjectDraftIssue(octokit, project, input) {
+function addProjectDraftIssue(octokit, project, data) {
     return __awaiter(this, void 0, void 0, function* () {
+        const { fieldValues: newFieldValues } = data, input = __rest(data, ["fieldValues"]);
         const { addProjectDraftIssue: { projectNextItem: issue }, } = yield octokit.graphql(queries_1.addProjectDraftIssueMutation, Object.assign({ projectId: project.id }, input));
-        if (input.fieldValues) {
-            const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fields, input.fieldValues), {
+        if (newFieldValues) {
+            core.debug(JSON.stringify(project.fields, null, 2));
+            const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fields, newFieldValues), {
                 projectId: project.id,
                 itemId: issue.id,
             });

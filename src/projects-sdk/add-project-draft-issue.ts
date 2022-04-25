@@ -4,19 +4,21 @@ import type { DraftIssue, Octokit, Project } from './types';
 import { getIssueFieldValues } from './util';
 import * as core from '@actions/core';
 
-export interface AddProjectDraftIssueInput {
+export interface AddProjectDraftIssueData {
     title: string;
     body?: string;
     assigneeIds?: string[];
     fieldValues?: Record<string, string>;
 }
 
-export async function addProjectDraftIssue(octokit: Octokit, project: Project, input: AddProjectDraftIssueInput): Promise<DraftIssue> {
+export async function addProjectDraftIssue(octokit: Octokit, project: Project, data: AddProjectDraftIssueData): Promise<DraftIssue> {
+    const { fieldValues: newFieldValues, ...input } = data;
     const {
         addProjectDraftIssue: { projectNextItem: issue },
     } = await octokit.graphql(addProjectDraftIssueMutation, { projectId: project.id, ...input });
-    if (input.fieldValues) {
-        const response = await octokit.graphql(getFieldsUpdateQuery(project.fields, input.fieldValues), {
+    if (newFieldValues) {
+        core.debug(JSON.stringify(project.fields, null, 2));
+        const response = await octokit.graphql(getFieldsUpdateQuery(project.fields, newFieldValues), {
             projectId: project.id,
             itemId: issue.id,
         });
