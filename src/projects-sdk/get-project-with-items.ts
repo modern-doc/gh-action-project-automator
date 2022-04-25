@@ -26,7 +26,7 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
             name: field.name,
             settings: JSON.parse(field.settings || '{}'),
         };
-        fieldsById[field.name] = fieldsById[field.id];
+        fieldsByName[field.name] = fieldsById[field.id];
     });
 
     const draftIssues = projectNext.items.nodes

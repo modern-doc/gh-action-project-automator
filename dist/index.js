@@ -126,7 +126,7 @@ function getProjectWithItems(octokit, req) {
                 name: field.name,
                 settings: JSON.parse(field.settings || '{}'),
             };
-            fieldsById[field.name] = fieldsById[field.id];
+            fieldsByName[field.name] = fieldsById[field.id];
         });
         const draftIssues = projectNext.items.nodes
             .filter((item) => item.type === 'DRAFT_ISSUE')
