@@ -46,7 +46,8 @@ async function run(): Promise<void> {
             id: 'DI_lADOBWbI3c4ABXNHzgAZGDc',
             body: 'Here is the OG body.',
             fieldValuesByName: {
-                Test: 'Good',
+                Test: '',
+                Team: undefined as any,
             },
         });
         core.debug(JSON.stringify(updatedIssue, null, 2));

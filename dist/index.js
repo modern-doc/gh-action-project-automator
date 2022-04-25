@@ -75,7 +75,8 @@ function run() {
                 id: 'DI_lADOBWbI3c4ABXNHzgAZGDc',
                 body: 'Here is the OG body.',
                 fieldValuesByName: {
-                    Test: 'Good',
+                    Test: '',
+                    Team: undefined,
                 },
             });
             core.debug(JSON.stringify(updatedIssue, null, 2));
