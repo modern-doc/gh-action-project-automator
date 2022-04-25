@@ -3,7 +3,7 @@ import * as github from '@actions/github';
 import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
 //import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
 import { getProjectWithItems } from './projects-sdk/get-project-with-items';
-import { updateProjectDraftIssue } from './projects-sdk/update-project-draft-issue';
+//import { updateProjectDraftIssue } from './projects-sdk/update-project-draft-issue';
 
 interface Input {
     ghToken: string;
