@@ -1,10 +1,8 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-//import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
-//import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
+import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
 import { getProjectWithItems } from './projects-sdk/get-project-with-items';
 import { updateProjectDraftIssue } from './projects-sdk/update-project-draft-issue';
-//import { updateProjectDraftIssue } from './projects-sdk/update-project-draft-issue';
 
 interface Input {
     ghToken: string;
@@ -36,21 +34,41 @@ export function getInputs(): Input {
 
 async function run(): Promise<void> {
     try {
-        const { ghToken, overviewProjectNumber, owner } = getInputs();
+        const { ghToken, projectNumber, overviewProjectNumber, owner } = getInputs();
         const octokit = github.getOctokit(ghToken);
-        //const project = await getProjectWithItems(octokit, { projectNumber, owner });
-        const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
-        core.debug(JSON.stringify(overviewProject, null, 2));
-        //core.debug(JSON.stringify(project, null, 2));
-        //core.debug(JSON.stringify(overviewProject, null, 2));
-        const updatedIssue = await updateProjectDraftIssue(octokit, overviewProject, {
-            id: 'DI_lADOBWbI3c4ABXNHzgAZGDc',
-            body: 'Here is the OG body.',
-            fieldValuesByName: {
-                Team: '',
-            },
+        const project = await getProjectWithItems(octokit, { projectNumber, owner });
+
+        const issueCountByTeam: Record<string, number> = {};
+        project.issues.forEach(issue => {
+            if (issue.fieldValuesByName['Status'] === 'In Progress') {
+                if (issueCountByTeam[issue.fieldValuesByName['Team']]) {
+                    issueCountByTeam[issue.fieldValuesByName['Team']]++;
+                } else {
+                    issueCountByTeam[issue.fieldValuesByName['Team']] = 1;
+                }
+            }
         });
-        core.debug(JSON.stringify(updatedIssue, null, 2));
+
+        const currentTeam = Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0];
+
+        const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
+        const existingOverviewIssue = overviewProject.draftIssues.find(i => i.title === project.title);
+
+        if (existingOverviewIssue) {
+            await updateProjectDraftIssue(octokit, overviewProject, {
+                id: existingOverviewIssue.id,
+                fieldValuesByName: {
+                    Team: currentTeam,
+                },
+            });
+        } else {
+            await addProjectDraftIssue(octokit, overviewProject, {
+                title: project.title,
+                fieldValuesByName: {
+                    Team: currentTeam,
+                },
+            });
+        }
     } catch (error) {
         if (error instanceof Error) core.setFailed(error.message);
     }
