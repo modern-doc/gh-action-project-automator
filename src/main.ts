@@ -1,8 +1,9 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
+//import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
 //import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
 import { getProjectWithItems } from './projects-sdk/get-project-with-items';
+import { updateProjectDraftIssue } from './projects-sdk/update-project-draft-issue';
 //import { updateProjectDraftIssue } from './projects-sdk/update-project-draft-issue';
 
 interface Input {
@@ -41,11 +42,11 @@ async function run(): Promise<void> {
         const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
         //core.debug(JSON.stringify(project, null, 2));
         //core.debug(JSON.stringify(overviewProject, null, 2));
-        const updatedIssue = await addProjectDraftIssue(octokit, overviewProject, {
-            title: 'New with db id',
-            body: 'Here is the updated body again.',
+        const updatedIssue = await updateProjectDraftIssue(octokit, overviewProject, {
+            id: 'DI_lADOBWbI3c4ABXNHzgAZGDc',
+            body: 'Here is the OG body.',
             fieldValuesByName: {
-                Team: 'SEO',
+                Team: 'Dev',
             },
         });
         core.debug(JSON.stringify(updatedIssue, null, 2));
