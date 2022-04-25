@@ -459,7 +459,8 @@ exports.escapeQuotes = escapeQuotes;
 const parseDraftIssueResp = (issueResp, fieldsById) => {
     const _a = (0, exports.getIssueRespFieldValuesByName)(issueResp, fieldsById), { Title } = _a, fieldValuesByName = __rest(_a, ["Title"]);
     return {
-        id: issueResp.databaseId,
+        id: issueResp.id,
+        databaseId: issueResp.databaseId,
         title: Title,
         fieldValuesByName,
     };
@@ -473,6 +474,7 @@ const parseIssueResp = (issueResp, fieldsById) => {
     const assignees = issueResp.content.assignees.nodes.map((n) => n.login);
     return {
         id: issueResp.id,
+        databaseId: issueResp.databaseId,
         number,
         title,
         url,

@@ -17,7 +17,8 @@ export const escapeQuotes = (str: unknown) => {
 export const parseDraftIssueResp = (issueResp: any, fieldsById: any): DraftIssue => {
     const { Title, ...fieldValuesByName } = getIssueRespFieldValuesByName(issueResp, fieldsById);
     return {
-        id: issueResp.databaseId,
+        id: issueResp.id,
+        databaseId: issueResp.databaseId,
         title: Title,
         fieldValuesByName,
     };
@@ -31,6 +32,7 @@ export const parseIssueResp = (issueResp: any, fieldsById: any): Issue => {
     const assignees = issueResp.content.assignees.nodes.map((n: any) => n.login);
     return {
         id: issueResp.id,
+        databaseId: issueResp.databaseId,
         number,
         title,
         url,
