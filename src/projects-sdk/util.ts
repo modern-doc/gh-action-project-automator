@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { DraftIssue, Issue } from './types';
-
+import * as core from '@actions/core';
 export const getIssueRespFieldValuesByName = (issue: any, fieldsById: any) => {
     return issue.fieldValues.nodes.reduce((obj: Record<string, string>, fieldValue: any) => {
         const { name, settings } = fieldsById[fieldValue.projectField.id];
@@ -16,6 +16,7 @@ export const escapeQuotes = (str: unknown) => {
 
 export const parseDraftIssueResp = (issueResp: any, fieldsById: any): DraftIssue => {
     const { Title, ...fieldValuesByName } = getIssueRespFieldValuesByName(issueResp, fieldsById);
+    core.debug(JSON.stringify(issueResp, null, 2));
     return {
         id: issueResp.id,
         databaseId: issueResp.databaseId,

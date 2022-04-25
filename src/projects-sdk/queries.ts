@@ -56,10 +56,23 @@ const queryContentNode = `
       ${queryIssuesAndPullRequestNodes}
       merged
     }
+    ... on DraftIssue {
+      id
+      title
+      body
+      bodyHTML
+      bodyText
+      assignees(first:10) {
+        nodes {
+          login
+        }
+      }
+    }
   }
 `;
 export const queryItemFieldNodes = `
   id
+  databaseId
   type
   ${queryContentNode}
   fieldValues(first: 20) {
