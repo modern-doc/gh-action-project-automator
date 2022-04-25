@@ -323,7 +323,7 @@ function getFieldsUpdateQuery(fieldsByName, fieldValuesByName) {
         .filter(([, fieldValue]) => fieldValue !== undefined)
         .map(([fieldName, fieldValue], index) => {
         const field = fieldsByName[fieldName];
-        const valueOrOptionId = Array.isArray(field.settings.options)
+        const valueOrOptionId = fieldValue && Array.isArray(field.settings.options)
             ? field.settings.options.find((o) => o.name === fieldValue).id
             : fieldValue;
         const queryNodes = !index ? `projectNextItem { ${exports.queryItemFieldNodes} }` : 'clientMutationId';
