@@ -2,6 +2,7 @@
 import { getProjectWithItemsQuery } from './queries';
 import { parseDraftIssueResp, parseIssueResp } from './util';
 import type { Octokit, ProjectField, ProjectWithItems } from './types';
+import * as core from '@actions/core';
 
 export interface GetProjectWithItemsRequest {
     owner: string;
@@ -16,6 +17,8 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
         org: owner,
         number: projectNumber,
     });
+
+    core.debug(JSON.stringify(projectNext, null, 2));
 
     const fieldsById: Record<string, ProjectField> = {};
     const fieldsByName: Record<string, ProjectField> = {};
