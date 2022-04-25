@@ -210,13 +210,12 @@ exports.getProjectWithItems = getProjectWithItems;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getFieldsUpdateQuery = exports.updateProjectDraftIssueMutation = exports.addProjectDraftIssueMutation = exports.removeItemFromProjectMutation = exports.addIssueToProjectMutation = exports.getProjectCoreDataQuery = exports.getProjectItemsPaginatedQuery = exports.getProjectWithItemsQuery = exports.queryItemFieldNodes = void 0;
 const util_1 = __nccwpck_require__(6285);
-const queryIssuesAndPullRequestNodes = `
+const queryIssueNodes = `
   id
   number
   title
   url
   createdAt
-  databaseId
   assignees(first:10) {
     nodes {
       login
@@ -228,15 +227,14 @@ const queryIssuesAndPullRequestNodes = `
     }
   }
   closed
-  closedAt
-  createdAt
-  milestone {
-    number
-    title
-    state
-  }
-  repository {
-    name
+`;
+const queryDraftIssueNodes = `
+  id
+  title
+  assignees(first:10) {
+    nodes {
+      login
+    }
   }
 `;
 const queryProjectNodes = `
@@ -256,23 +254,10 @@ const queryContentNode = `
   content {
     __typename
     ... on Issue {
-      ${queryIssuesAndPullRequestNodes}
-    }
-    ... on PullRequest {
-      ${queryIssuesAndPullRequestNodes}
-      merged
+      ${queryIssueNodes}
     }
     ... on DraftIssue {
-      id
-      title
-      body
-      bodyHTML
-      bodyText
-      assignees(first:10) {
-        nodes {
-          login
-        }
-      }
+      ${queryDraftIssueNodes}
     }
   }
 `;
@@ -414,34 +399,11 @@ exports.getFieldsUpdateQuery = getFieldsUpdateQuery;
 /***/ }),
 
 /***/ 6285:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ (function(__unused_webpack_module, exports) {
 
 "use strict";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -455,7 +417,6 @@ var __rest = (this && this.__rest) || function (s, e) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseIssueResp = exports.parseDraftIssueResp = exports.escapeQuotes = exports.getIssueRespFieldValuesByName = void 0;
-const core = __importStar(__nccwpck_require__(2186));
 const getIssueRespFieldValuesByName = (issue, fieldsById) => {
     return issue.fieldValues.nodes.reduce((obj, fieldValue) => {
         const { name, settings } = fieldsById[fieldValue.projectField.id];
@@ -470,11 +431,12 @@ const escapeQuotes = (str) => {
 exports.escapeQuotes = escapeQuotes;
 const parseDraftIssueResp = (issueResp, fieldsById) => {
     const _a = (0, exports.getIssueRespFieldValuesByName)(issueResp, fieldsById), { Title } = _a, fieldValuesByName = __rest(_a, ["Title"]);
-    core.debug(JSON.stringify(issueResp, null, 2));
+    const { id } = issueResp.content;
+    const assignees = issueResp.content.assignees.nodes.map((n) => n.login);
     return {
-        id: issueResp.id,
-        databaseId: issueResp.databaseId,
+        id,
         title: Title,
+        assignees,
         fieldValuesByName,
     };
 };
@@ -482,12 +444,11 @@ exports.parseDraftIssueResp = parseDraftIssueResp;
 const parseIssueResp = (issueResp, fieldsById) => {
     const fieldValuesByName = (0, exports.getIssueRespFieldValuesByName)(issueResp, fieldsById);
     delete fieldValuesByName.Title;
-    const { number, title, url, closed } = issueResp.content;
+    const { id, number, title, url, closed } = issueResp.content;
     const labels = issueResp.content.labels.nodes.map((n) => n.name);
     const assignees = issueResp.content.assignees.nodes.map((n) => n.login);
     return {
-        id: issueResp.id,
-        databaseId: issueResp.databaseId,
+        id,
         number,
         title,
         url,

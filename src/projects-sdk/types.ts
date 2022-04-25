@@ -22,14 +22,13 @@ export interface ProjectField {
 
 export interface DraftIssue {
     id: string;
-    databaseId: string;
     title: string;
+    assignees: string[];
     fieldValuesByName: Record<string, string>;
 }
 
 export interface Issue {
     id: string;
-    databaseId: string;
     title: string;
     number: number;
     url: string;

@@ -2,13 +2,12 @@
 import { ProjectField } from './types';
 import { escapeQuotes } from './util';
 
-const queryIssuesAndPullRequestNodes = `
+const queryIssueNodes = `
   id
   number
   title
   url
   createdAt
-  databaseId
   assignees(first:10) {
     nodes {
       login
@@ -20,15 +19,15 @@ const queryIssuesAndPullRequestNodes = `
     }
   }
   closed
-  closedAt
-  createdAt
-  milestone {
-    number
-    title
-    state
-  }
-  repository {
-    name
+`;
+
+const queryDraftIssueNodes = `
+  id
+  title
+  assignees(first:10) {
+    nodes {
+      login
+    }
   }
 `;
 
@@ -50,23 +49,10 @@ const queryContentNode = `
   content {
     __typename
     ... on Issue {
-      ${queryIssuesAndPullRequestNodes}
-    }
-    ... on PullRequest {
-      ${queryIssuesAndPullRequestNodes}
-      merged
+      ${queryIssueNodes}
     }
     ... on DraftIssue {
-      id
-      title
-      body
-      bodyHTML
-      bodyText
-      assignees(first:10) {
-        nodes {
-          login
-        }
-      }
+      ${queryDraftIssueNodes}
     }
   }
 `;
