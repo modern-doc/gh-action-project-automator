@@ -347,8 +347,8 @@ exports.removeItemFromProjectMutation = `
   }
 `;
 exports.addDraftIssueToProjectMutation = `
-  mutation addDraftIssueToProject($projectId:ID!, $title:String!, $body: String, $assigneeIds:[ID!]) {
-    addDraftIssueToProject(input:{
+  mutation addProjectDraftIssue($projectId:ID!, $title:String!, $body: String, $assigneeIds:[ID!]) {
+    addProjectDraftIssue(input:{
       projectId:$projectId,
       title:$title,
       body:$body,
