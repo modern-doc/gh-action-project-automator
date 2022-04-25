@@ -40,12 +40,11 @@ async function run(): Promise<void> {
 
         const issueCountByTeam: Record<string, number> = {};
         project.issues.forEach(issue => {
+            if (issueCountByTeam[issue.fieldValuesByName['Team']] === undefined) {
+                issueCountByTeam[issue.fieldValuesByName['Team']] = 0;
+            }
             if (issue.fieldValuesByName['Status'] === 'In Progress') {
-                if (issueCountByTeam[issue.fieldValuesByName['Team']]) {
-                    issueCountByTeam[issue.fieldValuesByName['Team']]++;
-                } else {
-                    issueCountByTeam[issue.fieldValuesByName['Team']] = 1;
-                }
+                issueCountByTeam[issue.fieldValuesByName['Team']]++;
             }
         });
 

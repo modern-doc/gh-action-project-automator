@@ -69,13 +69,11 @@ function run() {
             const project = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber, owner });
             const issueCountByTeam = {};
             project.issues.forEach(issue => {
+                if (issueCountByTeam[issue.fieldValuesByName['Team']] === undefined) {
+                    issueCountByTeam[issue.fieldValuesByName['Team']] = 0;
+                }
                 if (issue.fieldValuesByName['Status'] === 'In Progress') {
-                    if (issueCountByTeam[issue.fieldValuesByName['Team']]) {
-                        issueCountByTeam[issue.fieldValuesByName['Team']]++;
-                    }
-                    else {
-                        issueCountByTeam[issue.fieldValuesByName['Team']] = 1;
-                    }
+                    issueCountByTeam[issue.fieldValuesByName['Team']]++;
                 }
             });
             const currentTeam = Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0];
