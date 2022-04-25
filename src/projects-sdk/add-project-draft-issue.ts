@@ -18,7 +18,7 @@ export async function addProjectDraftIssue(octokit: Octokit, project: Project, d
     const draftIssue = parseDraftIssueResp(draftIssueResp, project.fieldsById);
 
     if (fieldValuesByName) {
-        const response: any = await octokit.graphql(getFieldsUpdateQuery(project.fieldsById, fieldValuesByName), {
+        const response: any = await octokit.graphql(getFieldsUpdateQuery(project.fieldsByName, fieldValuesByName), {
             projectId: project.id,
             itemId: draftIssueResp.id,
         });
