@@ -40,7 +40,7 @@ async function run(): Promise<void> {
         //core.debug(JSON.stringify(project, null, 2));
         //core.debug(JSON.stringify(overviewProject, null, 2));
         const updatedIssue = await updateProjectDraftIssue(octokit, overviewProject, {
-            id: 'PNI_lADOBWbI3c4ABXNHzgBAO3I',
+            id: 'PNI_lADOBWbI3c4ABXNHzgBAPak',
             body: 'Here is the updated body.',
             fieldValuesByName: {
                 Team: 'Dev',
