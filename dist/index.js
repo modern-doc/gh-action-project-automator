@@ -310,8 +310,10 @@ exports.updateProjectDraftIssueMutation = `
       body:$body,
       assigneeIds:$assigneeIds
     }) {
-      projectNextItem {
-        ${exports.queryItemFieldNodes}
+      draftItem {
+        projectNextItem {
+          ${exports.queryItemFieldNodes}
+        }
       }
     }
   }
@@ -376,7 +378,7 @@ const util_1 = __nccwpck_require__(6285);
 function updateProjectDraftIssue(octokit, project, data) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id, fieldValuesByName } = data, input = __rest(data, ["id", "fieldValuesByName"]);
-        const { updateProjectDraftIssue: { projectNextItem: draftIssueResp }, } = yield octokit.graphql(queries_1.updateProjectDraftIssueMutation, Object.assign({ draftIssueId: id }, input));
+        const { updateProjectDraftIssue: { draftItem: { projectNextItem: draftIssueResp }, }, } = yield octokit.graphql(queries_1.updateProjectDraftIssueMutation, Object.assign({ draftIssueId: id }, input));
         const draftIssue = (0, util_1.parseDraftIssueResp)(draftIssueResp, project.fieldsById);
         if (fieldValuesByName) {
             const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fieldsById, fieldValuesByName), {
