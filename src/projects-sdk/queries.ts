@@ -166,7 +166,7 @@ export const updateProjectDraftIssueMutation = `
       body:$body,
       assigneeIds:$assigneeIds
     }) {
-      draftItem {
+      draftIssue {
         projectNextItem {
           ${queryItemFieldNodes}
         }
