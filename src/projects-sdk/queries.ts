@@ -58,7 +58,6 @@ const queryContentNode = `
 `;
 export const queryItemFieldNodes = `
   id
-  databaseId
   type
   ${queryContentNode}
   fieldValues(first: 20) {

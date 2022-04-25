@@ -4,7 +4,7 @@ import { parseDraftIssueResp } from './util';
 import type { DraftIssue, Octokit, Project } from './types';
 
 export interface UpdateProjectDraftIssueData {
-    databaseId: string;
+    id: string;
     title?: string;
     body?: string;
     assigneeIds?: string[];
@@ -12,18 +12,18 @@ export interface UpdateProjectDraftIssueData {
 }
 
 export async function updateProjectDraftIssue(octokit: Octokit, project: Project, data: UpdateProjectDraftIssueData): Promise<DraftIssue> {
-    const { databaseId, fieldValuesByName, ...input } = data;
+    const { id, fieldValuesByName, ...input } = data;
     const {
         updateProjectDraftIssue: {
             draftIssue: { projectItem: draftIssueResp },
         },
-    } = await octokit.graphql(updateProjectDraftIssueMutation, { draftIssueId: databaseId, ...input });
+    } = await octokit.graphql(updateProjectDraftIssueMutation, { draftIssueId: id, ...input });
     const draftIssue = parseDraftIssueResp(draftIssueResp, project.fieldsById);
 
     if (fieldValuesByName) {
         const response: any = await octokit.graphql(getFieldsUpdateQuery(project.fieldsById, fieldValuesByName), {
             projectId: project.id,
-            itemId: draftIssue.id,
+            itemId: draftIssueResp.id,
         });
 
         for (const key in response) {

@@ -20,7 +20,7 @@ export async function addProjectDraftIssue(octokit: Octokit, project: Project, d
     if (fieldValuesByName) {
         const response: any = await octokit.graphql(getFieldsUpdateQuery(project.fieldsById, fieldValuesByName), {
             projectId: project.id,
-            itemId: draftIssue.id,
+            itemId: draftIssueResp.id,
         });
 
         for (const key in response) {

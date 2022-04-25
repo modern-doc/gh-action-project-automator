@@ -128,7 +128,7 @@ function addProjectDraftIssue(octokit, project, data) {
         if (fieldValuesByName) {
             const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fieldsById, fieldValuesByName), {
                 projectId: project.id,
-                itemId: draftIssue.id,
+                itemId: draftIssueResp.id,
             });
             for (const key in response) {
                 if (response[key].projectNextItem) {
@@ -263,7 +263,6 @@ const queryContentNode = `
 `;
 exports.queryItemFieldNodes = `
   id
-  databaseId
   type
   ${queryContentNode}
   fieldValues(first: 20) {
