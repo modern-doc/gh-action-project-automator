@@ -69,10 +69,12 @@ function run() {
             const overviewProject = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber: overviewProjectNumber, owner });
             //core.debug(JSON.stringify(project, null, 2));
             //core.debug(JSON.stringify(overviewProject, null, 2));
-            const newIssue = yield (0, add_project_draft_issue_1.addProjectDraftIssue)(octokit, {
-                projectId: overviewProject.id,
+            const newIssue = yield (0, add_project_draft_issue_1.addProjectDraftIssue)(octokit, overviewProject, {
                 title: 'Test Mutation',
                 body: 'Here is the body.',
+                fieldValues: {
+                    Team: 'SEO',
+                },
             });
             core.debug(JSON.stringify(newIssue, null, 2));
         }
@@ -92,6 +94,29 @@ run();
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -101,14 +126,39 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.addProjectDraftIssue = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const queries_1 = __nccwpck_require__(541);
-function addProjectDraftIssue(octokit, input) {
+const util_1 = __nccwpck_require__(6285);
+const core = __importStar(__nccwpck_require__(2186));
+function addProjectDraftIssue(octokit, project, input) {
     return __awaiter(this, void 0, void 0, function* () {
-        const response = yield octokit.graphql(queries_1.addDraftIssueToProjectMutation, input);
-        return response;
+        const { addProjectDraftIssue: issue } = yield octokit.graphql(queries_1.addProjectDraftIssueMutation, Object.assign({ projectId: project.id }, input));
+        if (input.fieldValues) {
+            const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fields, input.fieldValues), {
+                projectId: project.id,
+                itemId: issue.id,
+            });
+            core.debug(JSON.stringify(response, null, 2));
+        }
+        const _a = (0, util_1.getIssueFieldValues)(issue, project.fields), { Title } = _a, fieldValues = __rest(_a, ["Title"]);
+        return {
+            id: issue.id,
+            title: Title,
+            fieldValues,
+        };
     });
 }
 exports.addProjectDraftIssue = addProjectDraftIssue;
@@ -207,12 +257,13 @@ exports.getProjectWithItems = getProjectWithItems;
 /***/ }),
 
 /***/ 541:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addDraftIssueToProjectMutation = exports.removeItemFromProjectMutation = exports.addIssueToProjectMutation = exports.getProjectCoreDataQuery = exports.getProjectItemsPaginatedQuery = exports.getProjectWithItemsQuery = exports.queryItemFieldNodes = void 0;
+exports.getFieldsUpdateQuery = exports.addProjectDraftIssueMutation = exports.removeItemFromProjectMutation = exports.addIssueToProjectMutation = exports.getProjectCoreDataQuery = exports.getProjectItemsPaginatedQuery = exports.getProjectWithItemsQuery = exports.queryItemFieldNodes = void 0;
+const util_1 = __nccwpck_require__(6285);
 const queryIssuesAndPullRequestNodes = `
   id
   number
@@ -346,7 +397,7 @@ exports.removeItemFromProjectMutation = `
     }
   }
 `;
-exports.addDraftIssueToProjectMutation = `
+exports.addProjectDraftIssueMutation = `
   mutation addProjectDraftIssue($projectId:ID!, $title:String!, $body: String, $assigneeIds:[ID!]) {
     addProjectDraftIssue(input:{
       projectId:$projectId,
@@ -360,6 +411,29 @@ exports.addDraftIssueToProjectMutation = `
     }
   }
 `;
+function getFieldsUpdateQuery(fields, fieldValues) {
+    const updates = Object.entries(fieldValues)
+        .filter(([, value]) => value !== undefined)
+        .map(([key, value], index) => {
+        const field = fields[key];
+        const valueOrOptionId = Array.isArray(field.settings.options)
+            ? field.settings.options.find((o) => o.name === value).id
+            : value;
+        const queryNodes = index === 0 ? `projectNextItem { ${exports.queryItemFieldNodes} }` : 'clientMutationId';
+        return `
+${key}: updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: "${field.id}", value: "${(0, util_1.escapeQuotes)(valueOrOptionId)}"}) {
+  ${queryNodes}
+}
+`;
+    })
+        .join('');
+    return `
+    mutation setItemProperties($projectId: ID!, $itemId: ID!) {
+      ${updates}
+    }
+  `;
+}
+exports.getFieldsUpdateQuery = getFieldsUpdateQuery;
 
 
 /***/ }),
@@ -371,7 +445,7 @@ exports.addDraftIssueToProjectMutation = `
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getIssueFieldValues = void 0;
+exports.escapeQuotes = exports.getIssueFieldValues = void 0;
 const getIssueFieldValues = (issue, fields) => {
     return issue.fieldValues.nodes.reduce((obj, fieldValue) => {
         const { name, settings } = fields[fieldValue.projectField.id];
@@ -380,6 +454,10 @@ const getIssueFieldValues = (issue, fields) => {
     }, {});
 };
 exports.getIssueFieldValues = getIssueFieldValues;
+const escapeQuotes = (str) => {
+    return String(str).replace(/\"/g, '\\"');
+};
+exports.escapeQuotes = escapeQuotes;
 
 
 /***/ }),

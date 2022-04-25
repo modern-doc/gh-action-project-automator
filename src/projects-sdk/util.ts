@@ -7,3 +7,7 @@ export const getIssueFieldValues = (issue: any, fields: any) => {
         return obj;
     }, {} as Record<string, string>);
 };
+
+export const escapeQuotes = (str: unknown) => {
+    return String(str).replace(/\"/g, '\\"');
+};

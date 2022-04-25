@@ -1,23 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getProjectWithItemsQuery } from './queries';
-import type { DraftIssue, Issue, Octokit, ProjectField } from './types';
 import { getIssueFieldValues } from './util';
+import type { Octokit, ProjectField, ProjectWithItems } from './types';
 
 export interface GetProjectWithItemsRequest {
     owner: string;
     projectNumber: number;
 }
 
-export interface GetProjectWithItemsResponse {
-    id: string;
-    title: string;
-    url: string;
-    fields: Record<string, ProjectField>;
-    draftIssues: DraftIssue[];
-    issues: Issue[];
-}
-
-export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithItemsRequest): Promise<GetProjectWithItemsResponse> {
+export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithItemsRequest): Promise<ProjectWithItems> {
     const { projectNumber, owner } = req;
     const {
         organization: { projectNext },

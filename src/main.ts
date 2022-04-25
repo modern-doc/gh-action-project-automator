@@ -39,10 +39,12 @@ async function run(): Promise<void> {
         const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
         //core.debug(JSON.stringify(project, null, 2));
         //core.debug(JSON.stringify(overviewProject, null, 2));
-        const newIssue = await addProjectDraftIssue(octokit, {
-            projectId: overviewProject.id,
+        const newIssue = await addProjectDraftIssue(octokit, overviewProject, {
             title: 'Test Mutation',
             body: 'Here is the body.',
+            fieldValues: {
+                Team: 'SEO',
+            },
         });
         core.debug(JSON.stringify(newIssue, null, 2));
     } catch (error) {

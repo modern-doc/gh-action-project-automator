@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { ProjectField } from './types';
+import { escapeQuotes } from './util';
+
 const queryIssuesAndPullRequestNodes = `
   id
   number
@@ -139,7 +143,7 @@ export const removeItemFromProjectMutation = `
   }
 `;
 
-export const addDraftIssueToProjectMutation = `
+export const addProjectDraftIssueMutation = `
   mutation addProjectDraftIssue($projectId:ID!, $title:String!, $body: String, $assigneeIds:[ID!]) {
     addProjectDraftIssue(input:{
       projectId:$projectId,
@@ -153,3 +157,31 @@ export const addDraftIssueToProjectMutation = `
     }
   }
 `;
+
+export function getFieldsUpdateQuery(fields: Record<string, ProjectField>, fieldValues: Record<string, string>) {
+    const updates = Object.entries(fieldValues)
+        .filter(([, value]) => value !== undefined)
+        .map(([key, value], index) => {
+            const field = fields[key];
+            const valueOrOptionId = Array.isArray(field.settings.options)
+                ? field.settings.options.find((o: any) => o.name === value).id
+                : value;
+
+            const queryNodes = index === 0 ? `projectNextItem { ${queryItemFieldNodes} }` : 'clientMutationId';
+
+            return `
+${key}: updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: "${field.id}", value: "${escapeQuotes(
+                valueOrOptionId
+            )}"}) {
+  ${queryNodes}
+}
+`;
+        })
+        .join('');
+
+    return `
+    mutation setItemProperties($projectId: ID!, $itemId: ID!) {
+      ${updates}
+    }
+  `;
+}
