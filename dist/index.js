@@ -42,8 +42,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const add_project_draft_issue_1 = __nccwpck_require__(7513);
+//import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
 const get_project_with_items_1 = __nccwpck_require__(1881);
+const update_project_draft_issue_1 = __nccwpck_require__(4483);
 function getInputs() {
     if (!github.context)
         throw new Error('No GitHub context.');
@@ -69,11 +70,11 @@ function run() {
             const overviewProject = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber: overviewProjectNumber, owner });
             //core.debug(JSON.stringify(project, null, 2));
             //core.debug(JSON.stringify(overviewProject, null, 2));
-            const updatedIssue = yield (0, add_project_draft_issue_1.addProjectDraftIssue)(octokit, overviewProject, {
-                title: 'Test New Issue',
-                body: 'Here is the updated body.',
+            const updatedIssue = yield (0, update_project_draft_issue_1.updateProjectDraftIssue)(octokit, overviewProject, {
+                id: 'PNI_lADOBWbI3c4ABXNHzgBARKg',
+                body: 'Here is the updated body again.',
                 fieldValuesByName: {
-                    Team: 'Dev',
+                    Team: 'SEO',
                 },
             });
             core.debug(JSON.stringify(updatedIssue, null, 2));
@@ -85,60 +86,6 @@ function run() {
     });
 }
 run();
-
-
-/***/ }),
-
-/***/ 7513:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addProjectDraftIssue = void 0;
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const queries_1 = __nccwpck_require__(541);
-const util_1 = __nccwpck_require__(6285);
-function addProjectDraftIssue(octokit, project, data) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { fieldValuesByName } = data, input = __rest(data, ["fieldValuesByName"]);
-        const { addProjectDraftIssue: { projectNextItem: draftIssueResp }, } = yield octokit.graphql(queries_1.addProjectDraftIssueMutation, Object.assign({ projectId: project.id }, input));
-        const draftIssue = (0, util_1.parseDraftIssueResp)(draftIssueResp, project.fieldsById);
-        if (fieldValuesByName) {
-            const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fieldsById, fieldValuesByName), {
-                projectId: project.id,
-                itemId: draftIssue.id,
-            });
-            for (const key in response) {
-                if (response[key].projectNextItem) {
-                    return (0, util_1.parseDraftIssueResp)(response[key].projectNextItem, project.fieldsById);
-                }
-            }
-        }
-        return draftIssue;
-    });
-}
-exports.addProjectDraftIssue = addProjectDraftIssue;
 
 
 /***/ }),
@@ -395,6 +342,60 @@ ${fieldName}: updateProjectNextItemField(input: {projectId: $projectId, itemId: 
   `;
 }
 exports.getFieldsUpdateQuery = getFieldsUpdateQuery;
+
+
+/***/ }),
+
+/***/ 4483:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.updateProjectDraftIssue = void 0;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const queries_1 = __nccwpck_require__(541);
+const util_1 = __nccwpck_require__(6285);
+function updateProjectDraftIssue(octokit, project, data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { id, fieldValuesByName } = data, input = __rest(data, ["id", "fieldValuesByName"]);
+        const { updateProjectDraftIssue: { draftIssue: { projectItem: draftIssueResp }, }, } = yield octokit.graphql(queries_1.updateProjectDraftIssueMutation, Object.assign({ draftIssueId: id }, input));
+        const draftIssue = (0, util_1.parseDraftIssueResp)(draftIssueResp, project.fieldsById);
+        if (fieldValuesByName) {
+            const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fieldsById, fieldValuesByName), {
+                projectId: project.id,
+                itemId: draftIssue.id,
+            });
+            for (const key in response) {
+                if (response[key].projectNextItem) {
+                    return (0, util_1.parseDraftIssueResp)(response[key].projectNextItem, project.fieldsById);
+                }
+            }
+        }
+        return draftIssue;
+    });
+}
+exports.updateProjectDraftIssue = updateProjectDraftIssue;
 
 
 /***/ }),
