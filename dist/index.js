@@ -69,13 +69,14 @@ function run() {
             const octokit = github.getOctokit(ghToken);
             //const project = await getProjectWithItems(octokit, { projectNumber, owner });
             const overviewProject = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber: overviewProjectNumber, owner });
+            core.debug(JSON.stringify(overviewProject, null, 2));
             //core.debug(JSON.stringify(project, null, 2));
             //core.debug(JSON.stringify(overviewProject, null, 2));
             const updatedIssue = yield (0, update_project_draft_issue_1.updateProjectDraftIssue)(octokit, overviewProject, {
                 id: 'DI_lADOBWbI3c4ABXNHzgAZGDc',
                 body: 'Here is the OG body.',
                 fieldValuesByName: {
-                    Test: '',
+                    Team: '',
                 },
             });
             core.debug(JSON.stringify(updatedIssue, null, 2));

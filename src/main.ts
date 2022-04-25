@@ -40,13 +40,14 @@ async function run(): Promise<void> {
         const octokit = github.getOctokit(ghToken);
         //const project = await getProjectWithItems(octokit, { projectNumber, owner });
         const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
+        core.debug(JSON.stringify(overviewProject, null, 2));
         //core.debug(JSON.stringify(project, null, 2));
         //core.debug(JSON.stringify(overviewProject, null, 2));
         const updatedIssue = await updateProjectDraftIssue(octokit, overviewProject, {
             id: 'DI_lADOBWbI3c4ABXNHzgAZGDc',
             body: 'Here is the OG body.',
             fieldValuesByName: {
-                Test: '',
+                Team: '',
             },
         });
         core.debug(JSON.stringify(updatedIssue, null, 2));
