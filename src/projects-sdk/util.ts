@@ -17,7 +17,7 @@ export const escapeQuotes = (str: unknown) => {
 export const parseDraftIssueResp = (issueResp: any, fieldsById: any): DraftIssue => {
     const { Title, ...fieldValuesByName } = getIssueRespFieldValuesByName(issueResp, fieldsById);
     return {
-        id: issueResp.id,
+        id: issueResp.databaseId,
         title: Title,
         fieldValuesByName,
     };
