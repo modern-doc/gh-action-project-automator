@@ -131,7 +131,7 @@ function addProjectDraftIssue(octokit, project, data) {
             });
             for (const key in response) {
                 if (response[key].projectNextItem) {
-                    return (0, util_1.parseDraftIssueResp)(response[key].projectNextItem, fieldValuesByName);
+                    return (0, util_1.parseDraftIssueResp)(response[key].projectNextItem, project.fieldsById);
                 }
             }
         }

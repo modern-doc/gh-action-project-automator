@@ -25,7 +25,7 @@ export async function addProjectDraftIssue(octokit: Octokit, project: Project, d
 
         for (const key in response) {
             if (response[key].projectNextItem) {
-                return parseDraftIssueResp(response[key].projectNextItem, fieldValuesByName);
+                return parseDraftIssueResp(response[key].projectNextItem, project.fieldsById);
             }
         }
     }
