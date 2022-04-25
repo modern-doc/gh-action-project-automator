@@ -42,6 +42,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
+const add_project_draft_issue_1 = __nccwpck_require__(7513);
 const get_project_with_items_1 = __nccwpck_require__(1881);
 function getInputs() {
     if (!github.context)
@@ -62,12 +63,18 @@ exports.getInputs = getInputs;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { ghToken, projectNumber, overviewProjectNumber, owner } = getInputs();
+            const { ghToken, overviewProjectNumber, owner } = getInputs();
             const octokit = github.getOctokit(ghToken);
-            const project = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber, owner });
+            //const project = await getProjectWithItems(octokit, { projectNumber, owner });
             const overviewProject = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber: overviewProjectNumber, owner });
-            core.debug(JSON.stringify(project, null, 2));
-            core.debug(JSON.stringify(overviewProject, null, 2));
+            //core.debug(JSON.stringify(project, null, 2));
+            //core.debug(JSON.stringify(overviewProject, null, 2));
+            const newIssue = yield (0, add_project_draft_issue_1.addProjectDraftIssue)(octokit, {
+                projectId: overviewProject.id,
+                title: 'Test Mutation',
+                body: 'Here is the body.',
+            });
+            core.debug(JSON.stringify(newIssue, null, 2));
         }
         catch (error) {
             if (error instanceof Error)
@@ -76,6 +83,35 @@ function run() {
     });
 }
 run();
+
+
+/***/ }),
+
+/***/ 7513:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.addProjectDraftIssue = void 0;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const queries_1 = __nccwpck_require__(541);
+function addProjectDraftIssue(octokit, input) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield octokit.graphql(queries_1.addDraftIssueToProjectMutation, input);
+        return response;
+    });
+}
+exports.addProjectDraftIssue = addProjectDraftIssue;
 
 
 /***/ }),
@@ -106,17 +142,10 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getProjectWithItems = exports.getIssueFieldValues = void 0;
+exports.getProjectWithItems = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const queries_1 = __nccwpck_require__(541);
-const getIssueFieldValues = (issue, fields) => {
-    return issue.fieldValues.nodes.reduce((obj, fieldValue) => {
-        const { name, settings } = fields[fieldValue.projectField.id];
-        obj[name] = Array.isArray(settings.options) ? settings.options.find((o) => o.id === fieldValue.value).name : fieldValue.value;
-        return obj;
-    }, {});
-};
-exports.getIssueFieldValues = getIssueFieldValues;
+const util_1 = __nccwpck_require__(6285);
 function getProjectWithItems(octokit, req) {
     return __awaiter(this, void 0, void 0, function* () {
         const { projectNumber, owner } = req;
@@ -135,7 +164,7 @@ function getProjectWithItems(octokit, req) {
         const draftIssues = projectNext.items.nodes
             .filter((item) => item.type === 'DRAFT_ISSUE')
             .map((issue) => {
-            const _a = (0, exports.getIssueFieldValues)(issue, fields), { Title } = _a, fieldValues = __rest(_a, ["Title"]);
+            const _a = (0, util_1.getIssueFieldValues)(issue, fields), { Title } = _a, fieldValues = __rest(_a, ["Title"]);
             return {
                 id: issue.id,
                 title: Title,
@@ -145,11 +174,11 @@ function getProjectWithItems(octokit, req) {
         const issues = projectNext.items.nodes
             .filter((item) => item.type === 'ISSUE')
             .map((item) => {
-            const fieldValues = (0, exports.getIssueFieldValues)(item, fields);
+            const fieldValues = (0, util_1.getIssueFieldValues)(item, fields);
             delete fieldValues.Title;
             const { number, title, url, closed } = item.content;
-            const labels = item.content.labels.nodes;
-            const assignees = item.content.assignees.nodes;
+            const labels = item.content.labels.nodes.map((n) => n.name);
+            const assignees = item.content.assignees.nodes.map((n) => n.login);
             return {
                 id: item.id,
                 type: item.type,
@@ -165,7 +194,6 @@ function getProjectWithItems(octokit, req) {
         return {
             id: projectNext.id,
             title: projectNext.title,
-            description: projectNext.description || '',
             url: projectNext.url,
             fields,
             draftIssues,
@@ -184,7 +212,7 @@ exports.getProjectWithItems = getProjectWithItems;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.removeItemFromProjectMutation = exports.addIssueToProjectMutation = exports.getProjectCoreDataQuery = exports.getProjectItemsPaginatedQuery = exports.getProjectWithItemsQuery = exports.queryItemFieldNodes = void 0;
+exports.addDraftIssueToProjectMutation = exports.removeItemFromProjectMutation = exports.addIssueToProjectMutation = exports.getProjectCoreDataQuery = exports.getProjectItemsPaginatedQuery = exports.getProjectWithItemsQuery = exports.queryItemFieldNodes = void 0;
 const queryIssuesAndPullRequestNodes = `
   id
   number
@@ -318,6 +346,40 @@ exports.removeItemFromProjectMutation = `
     }
   }
 `;
+exports.addDraftIssueToProjectMutation = `
+  mutation addDraftIssueToProject($projectId:ID!, $title:String!, $body: String, $assigneeIds:[ID!]) {
+    addProjectNextItem(input:{
+      projectId:$projectId,
+      title:$title,
+      body:$body,
+      assigneeIds:$assigneeIds
+    }) {
+      projectNextItem {
+        ${exports.queryItemFieldNodes}
+      }
+    }
+  }
+`;
+
+
+/***/ }),
+
+/***/ 6285:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getIssueFieldValues = void 0;
+const getIssueFieldValues = (issue, fields) => {
+    return issue.fieldValues.nodes.reduce((obj, fieldValue) => {
+        const { name, settings } = fields[fieldValue.projectField.id];
+        obj[name] = Array.isArray(settings.options) ? settings.options.find((o) => o.id === fieldValue.value).name : fieldValue.value;
+        return obj;
+    }, {});
+};
+exports.getIssueFieldValues = getIssueFieldValues;
 
 
 /***/ }),

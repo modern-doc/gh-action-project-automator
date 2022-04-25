@@ -138,3 +138,18 @@ export const removeItemFromProjectMutation = `
     }
   }
 `;
+
+export const addDraftIssueToProjectMutation = `
+  mutation addDraftIssueToProject($projectId:ID!, $title:String!, $body: String, $assigneeIds:[ID!]) {
+    addProjectNextItem(input:{
+      projectId:$projectId,
+      title:$title,
+      body:$body,
+      assigneeIds:$assigneeIds
+    }) {
+      projectNextItem {
+        ${queryItemFieldNodes}
+      }
+    }
+  }
+`;

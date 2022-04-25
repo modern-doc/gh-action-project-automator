@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import { addProjectDraftIssue } from './projects-sdk/add-project-draft-issue';
 import { getProjectWithItems } from './projects-sdk/get-project-with-items';
 
 interface Input {
@@ -32,12 +33,18 @@ export function getInputs(): Input {
 
 async function run(): Promise<void> {
     try {
-        const { ghToken, projectNumber, overviewProjectNumber, owner } = getInputs();
+        const { ghToken, overviewProjectNumber, owner } = getInputs();
         const octokit = github.getOctokit(ghToken);
-        const project = await getProjectWithItems(octokit, { projectNumber, owner });
+        //const project = await getProjectWithItems(octokit, { projectNumber, owner });
         const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
-        core.debug(JSON.stringify(project, null, 2));
-        core.debug(JSON.stringify(overviewProject, null, 2));
+        //core.debug(JSON.stringify(project, null, 2));
+        //core.debug(JSON.stringify(overviewProject, null, 2));
+        const newIssue = await addProjectDraftIssue(octokit, {
+            projectId: overviewProject.id,
+            title: 'Test Mutation',
+            body: 'Here is the body.',
+        });
+        core.debug(JSON.stringify(newIssue, null, 2));
     } catch (error) {
         if (error instanceof Error) core.setFailed(error.message);
     }
