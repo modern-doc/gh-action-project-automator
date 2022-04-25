@@ -158,11 +158,11 @@ export const addProjectDraftIssueMutation = `
   }
 `;
 
-export function getFieldsUpdateQuery(fields: Record<string, ProjectField>, fieldValues: Record<string, string>) {
-    const updates = Object.entries(fieldValues)
+export function getFieldsUpdateQuery(fieldsById: Record<string, ProjectField>, fieldValuesByName: Record<string, string>) {
+    const updates = Object.entries(fieldValuesByName)
         .filter(([, value]) => value !== undefined)
         .map(([key, value], index) => {
-            const field = fields[key];
+            const field = fieldsById[key];
             const valueOrOptionId = Array.isArray(field.settings.options)
                 ? field.settings.options.find((o: any) => o.name === value).id
                 : value;

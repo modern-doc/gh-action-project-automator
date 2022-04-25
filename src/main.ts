@@ -42,7 +42,7 @@ async function run(): Promise<void> {
         const newIssue = await addProjectDraftIssue(octokit, overviewProject, {
             title: 'Test Mutation',
             body: 'Here is the body.',
-            fieldValues: {
+            fieldValuesByName: {
                 Team: 'SEO',
             },
         });

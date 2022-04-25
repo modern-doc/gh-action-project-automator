@@ -72,7 +72,7 @@ function run() {
             const newIssue = yield (0, add_project_draft_issue_1.addProjectDraftIssue)(octokit, overviewProject, {
                 title: 'Test Mutation',
                 body: 'Here is the body.',
-                fieldValues: {
+                fieldValuesByName: {
                     Team: 'SEO',
                 },
             });
@@ -145,22 +145,18 @@ const util_1 = __nccwpck_require__(6285);
 const core = __importStar(__nccwpck_require__(2186));
 function addProjectDraftIssue(octokit, project, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { fieldValues: newFieldValues } = data, input = __rest(data, ["fieldValues"]);
-        const { addProjectDraftIssue: { projectNextItem: issue }, } = yield octokit.graphql(queries_1.addProjectDraftIssueMutation, Object.assign({ projectId: project.id }, input));
-        if (newFieldValues) {
-            core.debug(JSON.stringify(project.fields, null, 2));
-            const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fields, newFieldValues), {
+        const { fieldValuesByName } = data, input = __rest(data, ["fieldValuesByName"]);
+        const { addProjectDraftIssue: { projectNextItem: draftIssueResp }, } = yield octokit.graphql(queries_1.addProjectDraftIssueMutation, Object.assign({ projectId: project.id }, input));
+        const draftIssue = (0, util_1.parseDraftIssueResp)(draftIssueResp, project.fieldsById);
+        if (fieldValuesByName) {
+            core.debug(JSON.stringify(project.fieldsById, null, 2));
+            const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fieldsById, fieldValuesByName), {
                 projectId: project.id,
-                itemId: issue.id,
+                itemId: draftIssue.id,
             });
             core.debug(JSON.stringify(response, null, 2));
         }
-        const _a = (0, util_1.getIssueFieldValues)(issue, project.fields), { Title } = _a, fieldValues = __rest(_a, ["Title"]);
-        return {
-            id: issue.id,
-            title: Title,
-            fieldValues,
-        };
+        return draftIssue;
     });
 }
 exports.addProjectDraftIssue = addProjectDraftIssue;
@@ -182,17 +178,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getProjectWithItems = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -205,7 +190,7 @@ function getProjectWithItems(octokit, req) {
             org: owner,
             number: projectNumber,
         });
-        const fields = projectNext.fields.nodes.reduce((obj, field) => {
+        const fieldsById = projectNext.fields.nodes.reduce((obj, field) => {
             obj[field.id] = {
                 id: field.id,
                 name: field.name,
@@ -215,39 +200,15 @@ function getProjectWithItems(octokit, req) {
         }, {});
         const draftIssues = projectNext.items.nodes
             .filter((item) => item.type === 'DRAFT_ISSUE')
-            .map((issue) => {
-            const _a = (0, util_1.getIssueFieldValues)(issue, fields), { Title } = _a, fieldValues = __rest(_a, ["Title"]);
-            return {
-                id: issue.id,
-                title: Title,
-                fieldValues,
-            };
-        });
+            .map((issue) => (0, util_1.parseDraftIssueResp)(issue, fieldsById));
         const issues = projectNext.items.nodes
             .filter((item) => item.type === 'ISSUE')
-            .map((issue) => {
-            const fieldValues = (0, util_1.getIssueFieldValues)(issue, fields);
-            delete fieldValues.Title;
-            const { number, title, url, closed } = issue.content;
-            const labels = issue.content.labels.nodes.map((n) => n.name);
-            const assignees = issue.content.assignees.nodes.map((n) => n.login);
-            return {
-                id: issue.id,
-                type: issue.type,
-                number,
-                title,
-                url,
-                closed,
-                labels,
-                assignees,
-                fieldValues,
-            };
-        });
+            .map((issue) => (0, util_1.parseIssueResp)(issue, fieldsById));
         return {
             id: projectNext.id,
             title: projectNext.title,
             url: projectNext.url,
-            fields,
+            fieldsById,
             draftIssues,
             issues,
         };
@@ -413,11 +374,11 @@ exports.addProjectDraftIssueMutation = `
     }
   }
 `;
-function getFieldsUpdateQuery(fields, fieldValues) {
-    const updates = Object.entries(fieldValues)
+function getFieldsUpdateQuery(fieldsById, fieldValuesByName) {
+    const updates = Object.entries(fieldValuesByName)
         .filter(([, value]) => value !== undefined)
         .map(([key, value], index) => {
-        const field = fields[key];
+        const field = fieldsById[key];
         const valueOrOptionId = Array.isArray(field.settings.options)
             ? field.settings.options.find((o) => o.name === value).id
             : value;
@@ -441,25 +402,63 @@ exports.getFieldsUpdateQuery = getFieldsUpdateQuery;
 /***/ }),
 
 /***/ 6285:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports) {
 
 "use strict";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.escapeQuotes = exports.getIssueFieldValues = void 0;
-const getIssueFieldValues = (issue, fields) => {
+exports.parseIssueResp = exports.parseDraftIssueResp = exports.escapeQuotes = exports.getIssueRespFieldValuesByName = void 0;
+const getIssueRespFieldValuesByName = (issue, fieldsById) => {
     return issue.fieldValues.nodes.reduce((obj, fieldValue) => {
-        const { name, settings } = fields[fieldValue.projectField.id];
+        const { name, settings } = fieldsById[fieldValue.projectField.id];
         obj[name] = Array.isArray(settings.options) ? settings.options.find((o) => o.id === fieldValue.value).name : fieldValue.value;
         return obj;
     }, {});
 };
-exports.getIssueFieldValues = getIssueFieldValues;
+exports.getIssueRespFieldValuesByName = getIssueRespFieldValuesByName;
 const escapeQuotes = (str) => {
     return String(str).replace(/\"/g, '\\"');
 };
 exports.escapeQuotes = escapeQuotes;
+const parseDraftIssueResp = (issueResp, fieldsById) => {
+    const _a = (0, exports.getIssueRespFieldValuesByName)(issueResp, fieldsById), { Title } = _a, fieldValuesByName = __rest(_a, ["Title"]);
+    return {
+        id: issueResp.id,
+        title: Title,
+        fieldValuesByName,
+    };
+};
+exports.parseDraftIssueResp = parseDraftIssueResp;
+const parseIssueResp = (issueResp, fieldsById) => {
+    const fieldValuesByName = (0, exports.getIssueRespFieldValuesByName)(issueResp, fieldsById);
+    delete fieldValuesByName.Title;
+    const { number, title, url, closed } = issueResp.content;
+    const labels = issueResp.content.labels.nodes.map((n) => n.name);
+    const assignees = issueResp.content.assignees.nodes.map((n) => n.login);
+    return {
+        id: issueResp.id,
+        number,
+        title,
+        url,
+        closed,
+        labels,
+        assignees,
+        fieldValuesByName,
+    };
+};
+exports.parseIssueResp = parseIssueResp;
 
 
 /***/ }),

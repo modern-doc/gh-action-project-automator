@@ -5,7 +5,7 @@ export interface Project {
     id: string;
     title: string;
     url: string;
-    fields: Record<string, ProjectField>;
+    fieldsById: Record<string, ProjectField>;
 }
 
 export interface ProjectWithItems extends Project {
@@ -22,7 +22,7 @@ export interface ProjectField {
 export interface DraftIssue {
     id: string;
     title: string;
-    fieldValues: Record<string, string>;
+    fieldValuesByName: Record<string, string>;
 }
 
 export interface Issue {
@@ -31,8 +31,7 @@ export interface Issue {
     number: number;
     url: string;
     closed: boolean;
-    repository: string;
     labels: string[];
     assignees: string[];
-    fieldValues: Record<string, string>;
+    fieldValuesByName: Record<string, string>;
 }

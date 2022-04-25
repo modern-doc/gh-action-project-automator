@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getProjectWithItemsQuery } from './queries';
-import { getIssueFieldValues } from './util';
+import { parseDraftIssueResp, parseIssueResp } from './util';
 import type { Octokit, ProjectField, ProjectWithItems } from './types';
 
 export interface GetProjectWithItemsRequest {
@@ -17,7 +17,7 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
         number: projectNumber,
     });
 
-    const fields = projectNext.fields.nodes.reduce((obj: Record<string, ProjectField>, field: any) => {
+    const fieldsById = projectNext.fields.nodes.reduce((obj: Record<string, ProjectField>, field: any) => {
         obj[field.id] = {
             id: field.id,
             name: field.name,
@@ -28,41 +28,17 @@ export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithI
 
     const draftIssues = projectNext.items.nodes
         .filter((item: any) => item.type === 'DRAFT_ISSUE')
-        .map((issue: any) => {
-            const { Title, ...fieldValues } = getIssueFieldValues(issue, fields);
-            return {
-                id: issue.id,
-                title: Title,
-                fieldValues,
-            };
-        });
+        .map((issue: any) => parseDraftIssueResp(issue, fieldsById));
 
     const issues = projectNext.items.nodes
         .filter((item: any) => item.type === 'ISSUE')
-        .map((issue: any) => {
-            const fieldValues = getIssueFieldValues(issue, fields);
-            delete fieldValues.Title;
-            const { number, title, url, closed } = issue.content;
-            const labels = issue.content.labels.nodes.map((n: any) => n.name);
-            const assignees = issue.content.assignees.nodes.map((n: any) => n.login);
-            return {
-                id: issue.id,
-                type: issue.type,
-                number,
-                title,
-                url,
-                closed,
-                labels,
-                assignees,
-                fieldValues,
-            };
-        });
+        .map((issue: any) => parseIssueResp(issue, fieldsById));
 
     return {
         id: projectNext.id,
         title: projectNext.title,
         url: projectNext.url,
-        fields,
+        fieldsById,
         draftIssues,
         issues,
     };
