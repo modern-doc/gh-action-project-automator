@@ -158,6 +158,21 @@ export const addProjectDraftIssueMutation = `
   }
 `;
 
+export const updateProjectDraftIssueMutation = `
+  mutation updateProjectDraftIssue($draftIssueId:ID!, $title:String, $body: String, $assigneeIds:[ID!]) {
+    updateProjectDraftIssue(input:{
+      draftIssueId:$draftIssueId,
+      title:$title,
+      body:$body,
+      assigneeIds:$assigneeIds
+    }) {
+      projectNextItem {
+        ${queryItemFieldNodes}
+      }
+    }
+  }
+`;
+
 export function getFieldsUpdateQuery(fieldsByName: Record<string, ProjectField>, fieldValuesByName: Record<string, string>) {
     const updates = Object.entries(fieldValuesByName)
         .filter(([, fieldValue]) => fieldValue !== undefined)
