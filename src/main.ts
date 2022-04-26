@@ -40,7 +40,8 @@ async function run(): Promise<void> {
 
         const issueCountByTeam: Record<string, number> = {};
 
-        let body = `## Issues`;
+        let body = `\n --- \n`;
+        body += `## Issue Summary`;
 
         project.issues.forEach(issue => {
             const { Team: team, Status: status } = issue.fieldValuesByName;
@@ -53,9 +54,11 @@ async function run(): Promise<void> {
                     issueCountByTeam[team]++;
                 }
             }
-            const strike = status === 'Done' ? '~~~' : '';
+            const strike = status === 'Done' ? '~~' : '';
             body += `\n1. [${strike}${issue.title} (${team || 'Team not Set'})${strike}](${issue.url})`;
         });
+
+        body += '\n --- \n';
 
         const currentTeam = Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0] || '';
 

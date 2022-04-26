@@ -68,7 +68,8 @@ function run() {
             const octokit = github.getOctokit(ghToken);
             const project = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber, owner });
             const issueCountByTeam = {};
-            let body = `## Issues`;
+            let body = `\n --- \n`;
+            body += `## Issue Summary`;
             project.issues.forEach(issue => {
                 const { Team: team, Status: status } = issue.fieldValuesByName;
                 if (issue.closed && status !== 'Done')
@@ -81,9 +82,10 @@ function run() {
                         issueCountByTeam[team]++;
                     }
                 }
-                const strike = status === 'Done' ? '~~~' : '';
+                const strike = status === 'Done' ? '~~' : '';
                 body += `\n1. [${strike}${issue.title} (${team || 'Team not Set'})${strike}](${issue.url})`;
             });
+            body += '\n --- \n';
             const currentTeam = Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0] || '';
             const overviewProject = yield (0, get_project_with_items_1.getProjectWithItems)(octokit, { projectNumber: overviewProjectNumber, owner });
             core.debug(JSON.stringify(project.issues, null, 2));
