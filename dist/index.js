@@ -474,7 +474,8 @@ function updateProjectDraftIssue(octokit, project, data) {
         const { updateProjectDraftIssue: { draftIssue: { projectItem: draftIssueResp }, }, } = yield octokit.graphql(queries_1.updateProjectDraftIssueMutation, Object.assign({ draftIssueId: id }, input));
         const draftIssue = (0, util_1.parseDraftIssueResp)(draftIssueResp, project.fieldsById);
         if (fieldValuesByName) {
-            core.debug(JSON.stringify(draftIssueResp, null, 2));
+            core.debug(JSON.stringify(project.fieldsByName, null, 2));
+            core.debug(JSON.stringify(fieldValuesByName, null, 2));
             const response = yield octokit.graphql((0, queries_1.getFieldsUpdateQuery)(project.fieldsByName, fieldValuesByName), {
                 projectId: project.id,
                 itemId: draftIssueResp.id,
