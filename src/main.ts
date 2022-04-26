@@ -41,7 +41,7 @@ async function run(): Promise<void> {
         const issueCountByTeam: Record<string, number> = {};
 
         let body = `\n --- \n`;
-        body += `## Issue Summary`;
+        body += `### Issue Summary`;
 
         project.issues.forEach(issue => {
             const { Team: team, Status: status } = issue.fieldValuesByName;
@@ -55,7 +55,7 @@ async function run(): Promise<void> {
                 }
             }
             const strike = status === 'Done' ? '~~' : '';
-            body += `\n1. [${strike}${issue.title} (${team || 'Team not Set'})${strike}](${issue.url})`;
+            body += `\n+ [${strike}${issue.title} (${team || 'Team not Set'})${strike}](${issue.url})`;
         });
 
         body += '\n --- \n';
