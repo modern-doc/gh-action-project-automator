@@ -39,27 +39,36 @@ async function run(): Promise<void> {
         const project = await getProjectWithItems(octokit, { projectNumber, owner });
 
         const issueCountByTeam: Record<string, number> = {};
+
+        let body = `## Issues`;
+
         project.issues.forEach(issue => {
-            const team = issue.fieldValuesByName['Team'];
+            const { Team: team, Status: status } = issue.fieldValuesByName;
+            if (issue.closed && status !== 'Done') return;
             if (team) {
-                core.debug(JSON.stringify(project.fieldsByName, null, 2));
                 if (issueCountByTeam[team] === undefined) {
                     issueCountByTeam[team] = 0;
                 }
-                if (issue.fieldValuesByName['Status'] === 'In Progress') {
+                if (status === 'In Progress') {
                     issueCountByTeam[team]++;
                 }
             }
+            const strike = status === 'Done' ? '~~~' : '';
+            body += `\n1. [${strike}${issue.title} (${team || 'Team not Set'})${strike}](${issue.url})`;
         });
 
         const currentTeam = Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0] || '';
 
         const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
+
+        core.debug(JSON.stringify(project.issues, null, 2));
+
         const existingOverviewIssue = overviewProject.draftIssues.find(i => i.title === project.title);
 
         if (existingOverviewIssue) {
             await updateProjectDraftIssue(octokit, overviewProject, {
                 id: existingOverviewIssue.id,
+                body,
                 fieldValuesByName: {
                     Team: currentTeam,
                 },
@@ -67,6 +76,7 @@ async function run(): Promise<void> {
         } else {
             await addProjectDraftIssue(octokit, overviewProject, {
                 title: project.title,
+                body,
                 fieldValuesByName: {
                     Team: currentTeam,
                 },
