@@ -40,15 +40,19 @@ async function run(): Promise<void> {
 
         const issueCountByTeam: Record<string, number> = {};
         project.issues.forEach(issue => {
-            if (issueCountByTeam[issue.fieldValuesByName['Team']] === undefined) {
-                issueCountByTeam[issue.fieldValuesByName['Team']] = 0;
-            }
-            if (issue.fieldValuesByName['Status'] === 'In Progress') {
-                issueCountByTeam[issue.fieldValuesByName['Team']]++;
+            const team = issue.fieldValuesByName['Team'];
+            if (team) {
+                core.debug(JSON.stringify(project.fieldsByName, null, 2));
+                if (issueCountByTeam[team] === undefined) {
+                    issueCountByTeam[team] = 0;
+                }
+                if (issue.fieldValuesByName['Status'] === 'In Progress') {
+                    issueCountByTeam[team]++;
+                }
             }
         });
 
-        const currentTeam = Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0];
+        const currentTeam = Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0] || '';
 
         const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
         const existingOverviewIssue = overviewProject.draftIssues.find(i => i.title === project.title);
