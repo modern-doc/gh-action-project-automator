@@ -60,7 +60,8 @@ async function run(): Promise<void> {
 
         body += '\n --- \n';
 
-        const currentTeam = Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0] || '';
+        const currentTeam =
+            Object.entries(issueCountByTeam).sort(([, countA], [, countB]) => countB - countA)[0][0] || '';
 
         const overviewProject = await getProjectWithItems(octokit, { projectNumber: overviewProjectNumber, owner });
 

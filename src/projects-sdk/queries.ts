@@ -173,7 +173,10 @@ export const updateProjectDraftIssueMutation = `
   }
 `;
 
-export function getFieldsUpdateQuery(fieldsByName: Record<string, ProjectField>, fieldValuesByName: Record<string, string>) {
+export function getFieldsUpdateQuery(
+    fieldsByName: Record<string, ProjectField>,
+    fieldValuesByName: Record<string, string>
+) {
     const updates = Object.entries(fieldValuesByName)
         .filter(([, fieldValue]) => fieldValue !== undefined)
         .map(([fieldName, fieldValue], index) => {
@@ -186,9 +189,9 @@ export function getFieldsUpdateQuery(fieldsByName: Record<string, ProjectField>,
             const queryNodes = !index ? `projectNextItem { ${queryItemFieldNodes} }` : 'clientMutationId';
 
             return `
-${fieldName}: updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: "${field.id}", value: "${escapeQuotes(
-                valueOrOptionId
-            )}"}) {
+${fieldName}: updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: "${
+                field.id
+            }", value: "${escapeQuotes(valueOrOptionId)}"}) {
   ${queryNodes}
 }
 `;

@@ -10,7 +10,11 @@ export interface AddProjectDraftIssueData {
     fieldValuesByName?: Record<string, string>;
 }
 
-export async function addProjectDraftIssue(octokit: Octokit, project: Project, data: AddProjectDraftIssueData): Promise<DraftIssue> {
+export async function addProjectDraftIssue(
+    octokit: Octokit,
+    project: Project,
+    data: AddProjectDraftIssueData
+): Promise<DraftIssue> {
     const { fieldValuesByName, ...input } = data;
     const {
         addProjectDraftIssue: { projectNextItem: draftIssueResp },

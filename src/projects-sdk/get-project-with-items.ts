@@ -8,7 +8,10 @@ export interface GetProjectWithItemsRequest {
     projectNumber: number;
 }
 
-export async function getProjectWithItems(octokit: Octokit, req: GetProjectWithItemsRequest): Promise<ProjectWithItems> {
+export async function getProjectWithItems(
+    octokit: Octokit,
+    req: GetProjectWithItemsRequest
+): Promise<ProjectWithItems> {
     const { projectNumber, owner } = req;
     const {
         organization: { projectNext },
